@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('./middleware/cors');
 const { authenticate, autoAuthorize } = require('./middleware/auth');
 const routes = require('./routes');
+const { testAirtableConnection } = require('./config/airtable');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -61,6 +62,22 @@ app.use((error, req, res, next) => {
   
   res.end();
 });
+
+(async () => {
+  const isConnected = await testAirtableConnection();
+  if (!isConnected) {
+    console.error('❌ Arrêt du serveur car Airtable est inaccessible.');
+    process.exit(1); // stoppe le serveur
+  }
+
+  // Ici tu peux configurer tes routes, middlewares, etc.
+  app.use('/auth', require('./routes/auth'));
+
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Serveur démarré sur http://localhost:${PORT}`);
+  });
+})();
 
 app.listen(PORT, () => {
   console.log(`🚀 SSE Node.js server running on port ${PORT}`);

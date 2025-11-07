@@ -1,5 +1,7 @@
 // config/airtable.js
 const Airtable = require('airtable');
+// testAirtable.js
+require('dotenv').config(); // Charge les variables d'environnement
 
 // Configuration Airtable
 const airtableConfig = {
@@ -77,8 +79,27 @@ const airtableUtils = {
   }
 };
 
+const testAirtableConnection = async () => {
+  try {
+    // On récupère juste 1 enregistrement pour tester la connexion
+    const records = await base(airtableConfig.tables.users)
+      .select({ maxRecords: 1 })
+      .firstPage();
+
+    console.log('✅ Connexion Airtable OK !');
+    if (records.length === 0) {
+      console.log('⚠️ Connexion OK mais aucun utilisateur trouvé dans la table Users.');
+    }
+    return true;
+  } catch (error) {
+    console.error('❌ Impossible de se connecter à Airtable :', airtableUtils.handleAirtableError(error));
+    return false;
+  }
+};
+
 module.exports = {
   base,
   airtableConfig,
-  airtableUtils
+  airtableUtils,
+  testAirtableConnection
 };

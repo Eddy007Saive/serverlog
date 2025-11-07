@@ -33,7 +33,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Trouver l'utilisateur
-    const user = username ? findUserByUsername(username) : findUserByEmail(email);
+    const user = username ? await findUserByUsername(username) : await findUserByEmail(email);
     
     if (!user) {
       return res.status(401).json({
@@ -179,14 +179,122 @@ router.get('/me', (req, res) => {
   });
 });
 
-// Route d'enregistrement (optionnelle - désactivée par défaut)
+// Route d'enregistrement
 router.post('/register', async (req, res) => {
-  // Désactivé par défaut pour sécurité
-  res.status(403).json({
-    success: false,
-    error: 'Enregistrement désactivé',
-    message: 'L\'enregistrement de nouveaux utilisateurs est désactivé'
-  });
+  const { username, email, password, confirmPassword } = req.body;
+
+  try {
+    // Validation des données d'entrée
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Données manquantes',
+        message: 'Username, email et mot de passe requis'
+      });
+    }
+
+    // Vérifier que les mots de passe correspondent
+    if (confirmPassword && password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mots de passe non correspondants',
+        message: 'Les mots de passe ne correspondent pas'
+      });
+    }
+
+    // Validation du format email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email invalide',
+        message: 'Format d\'email invalide'
+      });
+    }
+
+    // Validation de la longueur du username
+    if (username.length < 3) {
+      return res.status(400).json({
+        success: false,
+        error: 'Username trop court',
+        message: 'Le nom d\'utilisateur doit contenir au moins 3 caractères'
+      });
+    }
+
+    // Validation de la longueur du mot de passe
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mot de passe trop court',
+        message: 'Le mot de passe doit contenir au moins 6 caractères'
+      });
+    }
+
+    // Importer le modèle User
+    const User = require('../../models/User');
+
+    // Créer l'utilisateur (la validation et la vérification des doublons sont gérées par le modèle)
+    const newUser = await User.create({
+      username,
+      email,
+      password,
+      role: 'user', // Rôle par défaut
+      permissions: ['read'], // Permissions par défaut
+      isActive: true
+    });
+
+    // Générer les tokens
+    const { accessToken, refreshToken } = generateTokens({
+      id: newUser.id,
+      username: newUser.username,
+      email: newUser.email,
+      role: newUser.role,
+      permissions: newUser.permissions
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Inscription réussie',
+      data: {
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          email: newUser.email,
+          role: newUser.role,
+          permissions: newUser.permissions
+        },
+        accessToken,
+        refreshToken,
+        expiresIn: require('../../config/auth').JWT_EXPIRES_IN
+      }
+    });
+
+  } catch (error) {
+    console.error('Erreur lors de l\'inscription:', error);
+    
+    // Gérer les erreurs spécifiques
+    if (error.message.includes('existe déjà')) {
+      return res.status(409).json({
+        success: false,
+        error: 'Utilisateur existant',
+        message: error.message
+      });
+    }
+    
+    if (error.message.includes('Validation échouée')) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation échouée',
+        message: error.message
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Erreur serveur',
+      message: 'Erreur lors de l\'inscription'
+    });
+  }
 });
 
 // Route pour changer le mot de passe (nécessite authentification)

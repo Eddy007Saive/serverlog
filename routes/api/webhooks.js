@@ -10,9 +10,9 @@ router.get('/webhooks', (req, res) => {
   sendEvent('start', { message: 'Récupération de la liste des webhooks...' });
   
   const webhooks = [
-    { path: '/auth/login', method: 'POST', description: 'Connexion utilisateur', auth: false },
-    { path: '/auth/refresh', method: 'POST', description: 'Rafraîchir le token', auth: false },
-    { path: '/auth/logout', method: 'POST', description: 'Déconnexion utilisateur', auth: true },
+    { path: '/api/auth/login', method: 'POST', description: 'Connexion utilisateur', auth: false },
+    { path: '/api/auth/refresh', method: 'POST', description: 'Rafraîchir le token', auth: false },
+    { path: '/api/auth/logout', method: 'POST', description: 'Déconnexion utilisateur', auth: true },
     { path: '/auth/me', method: 'GET', description: 'Informations utilisateur', auth: true },
     { path: '/auth/change-password', method: 'POST', description: 'Changer mot de passe', auth: true },
     { path: '/webhook/trier/profils', method: 'POST', description: 'Trier Profil (SSE)', auth: true, permissions: ['write'] },

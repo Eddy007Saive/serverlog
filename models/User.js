@@ -143,6 +143,8 @@ class User {
       return records.length > 0 ? User.fromAirtableRecord(records[0]) : null;
     } catch (error) {
       const airtableError = airtableUtils.handleAirtableError(error);
+      console.log(error);
+      
       throw new Error(`Erreur lors de la recherche: ${airtableError.message}`);
     }
   }
