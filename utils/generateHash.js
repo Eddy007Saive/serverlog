@@ -31,9 +31,6 @@ if (require.main === module) {
   const args = process.argv.slice(2);
   
   if (args.length === 0) {
-    console.log('Usage:');
-    console.log('  node utils/generateHash.js <password>           # Générer un hash');
-    console.log('  node utils/generateHash.js <password> <hash>    # Tester un hash');
     process.exit(1);
   }
 

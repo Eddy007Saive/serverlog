@@ -34,6 +34,8 @@ router.post('/login', async (req, res) => {
 
     // Trouver l'utilisateur
     const user = username ? await findUserByUsername(username) : await findUserByEmail(email);
+    console.log("dsdsd",user);
+    
     
     if (!user) {
       return res.status(401).json({
@@ -63,6 +65,7 @@ router.post('/login', async (req, res) => {
       data: {
         user: {
           id: user.id,
+          ID:user.userId,
           username: user.username,
           email: user.email,
           role: user.role,
@@ -231,10 +234,10 @@ router.post('/register', async (req, res) => {
     }
 
     // Importer le modèle User
-    const User = require('../../models/User');
+    const User = require('../../services/userService');
 
     // Créer l'utilisateur (la validation et la vérification des doublons sont gérées par le modèle)
-    const newUser = await User.create({
+    const newUser = await User.createUser({
       username,
       email,
       password,
