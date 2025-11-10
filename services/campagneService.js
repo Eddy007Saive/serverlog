@@ -18,58 +18,87 @@ const campagneService = {
       throw new Error(`Validation échouée: ${validationErrors.join(', ')}`);
     }
 
+    const fields = campagne.toAirtableFields();
+    console.log('Fields to create:', JSON.stringify(fields, null, 2));
+
     const records = await base(AIRTABLE_TABLE_NAME).create([
-      { fields: campagne.toAirtableFields() }
+      { fields }
     ]);
 
     return Campagne.fromAirtableRecord(records[0]);
   },
 
   /**
-   * Récupérer toutes les campagnes
-   * @param {Object} options - Options de recherche
-   * @returns {Promise<Array<Campagne>>}
+   * Récupérer toutes les campagnes avec pagination
+   * @param {Object} options - Options de recherche et pagination
+   * @returns {Promise<Object>} - { data, pagination }
    */
   async getAllCampagnes(options = {}) {
-    const { maxRecords = 100, filterByFormula = '', sort = [] } = options;
+    // Options de pagination
+    const page = parseInt(options.page) || 1;
+    const limit = parseInt(options.limit) || 100;
+    const filterByFormula = options.filterByFormula || '';
+    const sort = options.sort || [];
+
     const selectOptions = {
-      maxRecords,
       sort: sort.length ? sort : [{ field: 'Nom de la campagne', direction: 'asc' }],
     };
     if (filterByFormula) selectOptions.filterByFormula = filterByFormula;
 
-    const records = await base(AIRTABLE_TABLE_NAME)
+    // Récupérer tous les records
+    const allRecords = await base(AIRTABLE_TABLE_NAME)
       .select(selectOptions)
       .all();
 
-    return records.map(r => Campagne.fromAirtableRecord(r));
+    // Calculer la pagination
+    const totalRecords = allRecords.length;
+    const totalPages = Math.ceil(totalRecords / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+
+    // Extraire la page demandée
+    const paginatedRecords = allRecords.slice(startIndex, endIndex);
+
+    const campagnes = paginatedRecords.map(r => Campagne.fromAirtableRecord(r));
+
+    return {
+      data: campagnes,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalRecords,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
+    };
   },
 
- /**
-   * Récupérer toutes les campagnes d'un utilisateur
+  /**
+   * Récupérer toutes les campagnes d'un utilisateur avec pagination
    * @param {string} userId - ID de l'utilisateur
-   * @param {Object} options - Options de recherche
-   * @returns {Promise<Array<Campagne>>}
+   * @param {Object} options - Options de recherche et pagination
+   * @returns {Promise<Object>} - { data, pagination }
    */
   async getAllCampagnesByUser(userId, options = {}) {
-    console.log('getAllCampagnesByUser called with:', { userId, options });
+    
+    // Extraire l'ID si un objet user est passé
+    if (typeof userId === 'object' && userId !== null) {
+      userId = userId.id || userId._id || userId.userId;
+    }
     
     if (!userId) {
       throw new Error('ID utilisateur requis');
     }
 
-    // Déstructuration sécurisée avec vérification
-    const maxRecords = options.maxRecords || 100;
+    // Options de pagination
+    const page = parseInt(options.page) || 1;
+    const limit = parseInt(options.limit) || 100;
     const filterByFormula = options.filterByFormula || '';
     const sort = options.sort || [];
     
-    console.log('Options parsed:', { maxRecords, filterByFormula, sort });
-    
-    // Pour un champ Lookup, utiliser ARRAYJOIN avec & pour la concaténation
-    // Le user_id est probablement un nombre dans le lookup
-    let userFilter = `SEARCH("${userId}", ARRAYJOIN({user_id}))`;
-    
-    console.log('User filter created:', userFilter);
+    // Pour un champ Lookup, utiliser ARRAYJOIN
+    let userFilter = `FIND("${userId}", ARRAYJOIN({user_id}, ",")) > 0`;
     
     // Combiner avec un filtre supplémentaire si fourni
     const finalFilter = filterByFormula 
@@ -79,20 +108,41 @@ const campagneService = {
     console.log('Final filter formula:', finalFilter);
 
     const selectOptions = {
-      maxRecords,
       filterByFormula: finalFilter,
       sort: sort.length ? sort : [{ field: 'Nom de la campagne', direction: 'asc' }],
     };
 
-    console.log('Select options:', JSON.stringify(selectOptions));
-
     try {
-      const records = await base(AIRTABLE_TABLE_NAME)
+      // Récupérer tous les records correspondants
+      const allRecords = await base(AIRTABLE_TABLE_NAME)
         .select(selectOptions)
         .all();
 
-      console.log('Records retrieved:', records.length);
-      return records.map(r => Campagne.fromAirtableRecord(r));
+        
+        // Calculer la pagination
+        const totalRecords = allRecords.length;
+        const totalPages = Math.ceil(totalRecords / limit);
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + limit;
+        
+        // Extraire la page demandée
+        const paginatedRecords = allRecords.slice(startIndex, endIndex);
+        
+        const campagnes = paginatedRecords.map(r => Campagne.fromAirtableRecord(r));
+
+        console.log('Total records found:', campagnes);
+
+      return {
+        data: campagnes,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalRecords,
+          limit,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1
+        }
+      };
     } catch (error) {
       console.error('Airtable filter error:', error.message);
       console.error('Filter used:', finalFilter);
@@ -100,13 +150,13 @@ const campagneService = {
     }
   },
 
-
   /**
    * Récupérer une campagne par ID
    * @param {string} id - ID de la campagne
    * @returns {Promise<Campagne>}
    */
   async getCampagneById(id) {
+
     if (!id) {
       throw new Error('ID de campagne requis');
     }
@@ -203,9 +253,9 @@ const campagneService = {
   },
 
   /**
-   * Rechercher des campagnes selon des critères
-   * @param {Object} criteria - Critères de recherche
-   * @returns {Promise<Array<Campagne>>}
+   * Rechercher des campagnes selon des critères avec pagination
+   * @param {Object} criteria - Critères de recherche et options de pagination
+   * @returns {Promise<Object>} - { data, pagination }
    */
   async searchCampagnes(criteria) {
     const options = this._buildSearchOptions(criteria);
