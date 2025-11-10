@@ -2,7 +2,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { JWT_SECRET, PUBLIC_ENDPOINTS, ENDPOINT_PERMISSIONS } = require('../config/auth');
-const User = require('../models/User');
+const User = require('../services/userService');
+const roles = require('../config/role');
 
 // Middleware pour vérifier l'authentification
 const authenticate = async (req, res, next) => {
@@ -75,49 +76,28 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-// Middleware pour vérifier les permissions
-const authorize = (requiredPermissions = []) => {
-  return (req, res, next) => {
-    // Si pas de permissions requises, passer
-    if (requiredPermissions.length === 0) {
-      return next();
-    }
 
-    console.log(`🔑 Vérification des permissions pour: ${req.path}, requis: [${requiredPermissions.join(', ')}]`);
-
-    // Vérifier si l'utilisateur est authentifié
-    if (!req.user) {
-      console.log(`❌ Utilisateur non authentifié pour: ${req.path}`);
-      return res.status(401).json({
-        success: false,
-        error: 'Non authentifié',
-        message: 'Authentification requise'
-      });
-    }
-
-    // Récupérer les permissions de l'utilisateur
-    const userPermissions = req.user.permissions || [];
-    console.log(`👤 Permissions utilisateur ${req.user.username}: [${userPermissions.join(', ')}]`);
+const authorize = (resource, action) => {
+  return async (req, res, next) => {
+    const user = req.user;
+    console.log("user",user);
     
-    // Vérifier si l'utilisateur a les permissions requises
-    // Les admins ont accès à tout
-    const hasPermission = requiredPermissions.every(permission => 
-      userPermissions.includes(permission) || userPermissions.includes('admin')
-    );
+    if (!user) return res.status(401).json({ message: 'Non authentifié' });
 
-    if (!hasPermission) {
-      console.log(`❌ Permissions insuffisantes pour ${req.user.username} sur: ${req.path}`);
-      return res.status(403).json({
-        success: false,
-        error: 'Permissions insuffisantes',
-        message: `Permissions requises: ${requiredPermissions.join(', ')}`
-      });
+    // Récupérer les permissions réelles depuis la base
+    const rolePermissions = roles[user.role] || {};
+    const resourcePermissions = rolePermissions[resource] || [];
+    console.log("ressourcepermission",rolePermissions);
+    
+
+    if (user.role !== 'admin' && !resourcePermissions.includes(action)) {
+      return res.status(403).json({ message: `Accès refusé: ${action} sur ${resource}` });
     }
 
-    console.log(`✅ Permissions accordées pour ${req.user.username} sur: ${req.path}`);
     next();
   };
 };
+
 
 // Middleware automatique de permissions basé sur l'endpoint
 const autoAuthorize = (req, res, next) => {

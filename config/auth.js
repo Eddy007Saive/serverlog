@@ -1,17 +1,11 @@
 module.exports = {
-  // Clé secrète pour JWT (à changer en production et mettre dans les variables d'environnement)
+  // Configuration JWT
   JWT_SECRET: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
-  
-  // Durée d'expiration des tokens
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '24h',
-  
-  // Durée d'expiration des refresh tokens
   REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
-  
-  // Salt rounds pour bcrypt
   BCRYPT_SALT_ROUNDS: parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12,
   
-  // Liste des utilisateurs autorisés (en production, utiliser une base de données)
+  // Utilisateurs autorisés
   AUTHORIZED_USERS: [
     {
       id: 1,
@@ -25,7 +19,6 @@ module.exports = {
       id: 2,
       username: 'user',
       email: 'user@example.com',
-      // Mot de passe: 'user123' (hashé)
       password: '$2b$12$9Rr2ZZwMz6gY5SK4Rr2ZZwMz6gY5SK4Rr2ZZwMz6gY5SK4Rr2ZZwMz',
       role: 'user',
       permissions: ['read', 'write']
@@ -40,20 +33,32 @@ module.exports = {
     '/api/health',
     '/favicon.ico',
     '/api/webhooks'
+    // Les campagnes ne sont PAS publiques - elles nécessitent une authentification
   ],
   
   // Permissions requises par endpoint
   ENDPOINT_PERMISSIONS: {
+    // Webhooks existants
     '/webhook/generer/messages': ['write'],
     '/webhook/regenerer/messages': ['write'],
     '/webhook/enrichir/contacte': ['write'],
     '/webhook/supprimer/contact/reject': ['delete'],
     '/webhook/trier/profils': ['write'],
     '/webhook/retrier/profils': ['write'],
+    
+    // API existantes
     '/api/generer/messages': ['write'],
     '/api/regenerer/messages': ['write'],
     '/api/enrichir/contacte': ['write'],
     '/api/supprimer/contact/reject': ['delete'],
-    '/api/execution': ['read']
+    '/api/execution': ['read'],
+    
+    // CAMPAGNES - Endpoints protégés
+    '/api/campagnes': ['read', 'write'], 
+    '/api/campagnes/user': ['read', 'write'],              // GET (read) / POST (write)
+    '/api/campagnes/:id': ['read', 'write', 'delete'], // GET (read) / PATCH (write) / DELETE (delete)
+    '/api/campagnes/:id/lancer': ['write'],           // POST - Lancer campagne
+    '/api/campagnes/stats': ['read'],                 // GET - Statistiques
+    '/api/campagnes/search': ['read']
   }
 };
