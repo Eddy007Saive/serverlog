@@ -3,7 +3,7 @@ const { airtableUtils } = require('../config/airtable');
 class Notification {
   constructor(data = {}) {
     this.id = data.id || null;
-    this.workfow = data.workfow || data.workflow || '';
+    this.id_notification= data.id_notification  || null;
     this.status = data.status || 'info';
     this.message = data.message || '';
     this.data = data.data || '';
@@ -33,7 +33,7 @@ class Notification {
 
   toAirtableFields() {
     return airtableUtils.filterEmptyFields({
-      'workfow': this.workfow,
+
       'status': this.status,
       'message': this.message,
       'data': typeof this.data === 'object' ? JSON.stringify(this.data) : this.data,
@@ -48,6 +48,7 @@ class Notification {
 
     return new Notification({
       id: data.id,
+      id_notification: data.id_notification,
       workfow: data.workfow || '',
       status: data.status || 'info',
       message: data.message || '',
@@ -134,7 +135,7 @@ class Notification {
   toJSON() {
     return {
       id: this.id,
-      workfow: this.workfow,
+      id_notification: this.id_notification,
       status: this.status,
       message: this.message,
       data: this.data,
