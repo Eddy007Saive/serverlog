@@ -129,7 +129,7 @@ const campagneService = {
 
       const campagnes = paginatedRecords.map(r => Campagne.fromAirtableRecord(r));
 
-      console.log('Total records found:', campagnes);
+      console.log('Total records found:', campagnes.length);
 
       return {
         data: campagnes,

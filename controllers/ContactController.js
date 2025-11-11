@@ -62,6 +62,8 @@ exports.getContacts = async (req, res) => {
     };
 
     const result = await contactService.getAllContacts(options);
+    console.log(result);
+    
 
     res.status(200).json({
       success: true,
@@ -80,6 +82,10 @@ exports.getContacts = async (req, res) => {
  * @query sortBy - Champ de tri
  * @query sortOrder - Ordre de tri (asc/desc)
  */
+/**
+ * Récupérer les contacts d'un utilisateur avec pagination
+ * @route GET /api/contacts/user
+ */
 exports.getContactsByUser = async (req, res) => {
   try {
     const user = await userService.findById(req.user.id);
@@ -92,8 +98,11 @@ exports.getContactsByUser = async (req, res) => {
     }
 
     const options = {
-      page: req.query.page || 1,
-      limit: req.query.limit || 20,
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 20,
+      search: req.query.search || '',
+      statusFilter: req.query.statusFilter || '',
+      profileFilter: req.query.profileFilter || '',
       ...(req.query.sortBy && {
         sort: [{
           field: req.query.sortBy,
@@ -103,7 +112,7 @@ exports.getContactsByUser = async (req, res) => {
     };
 
     const result = await contactService.getAllContactsByUser(user.userId, options);
-
+    
     res.status(200).json({
       success: true,
       result
@@ -112,7 +121,6 @@ exports.getContactsByUser = async (req, res) => {
     handleError(res, err, 'Erreur lors de la récupération des contacts de l\'utilisateur');
   }
 };
-
 /**
  * Récupérer les contacts d'une campagne
  * @route GET /api/contacts/campagne/:campagneId

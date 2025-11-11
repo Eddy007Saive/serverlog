@@ -3,7 +3,7 @@ const Contact = require('../models/Contact');
 const axios = require('axios');
 const campagneService = require('./campagneService');
 
-const AIRTABLE_TABLE_NAME ='Contacts';
+const AIRTABLE_TABLE_NAME = 'Contacts';
 
 const contactService = {
   /**
@@ -117,33 +117,66 @@ const contactService = {
    * @returns {Promise<Object>} - { data, pagination }
    */
   async getAllContactsByUser(userId, options = {}) {
-    // Extraire l'ID si un objet user est passé
     if (typeof userId === 'object' && userId !== null) {
       userId = userId.id || userId._id || userId.userId;
     }
-    
+
     if (!userId) {
       throw new Error('ID utilisateur requis');
     }
 
     const page = parseInt(options.page) || 1;
     const limit = parseInt(options.limit) || 100;
-    const filterByFormula = options.filterByFormula || '';
-    const sort = options.sort || [];
-    
-    // Filtre par user_id (champ Lookup)
-    let userFilter = `FIND("${userId}", ARRAYJOIN({user_id}, ",")) > 0`;
-    
-    // Combiner avec un filtre supplémentaire si fourni
-    const finalFilter = filterByFormula 
-      ? `AND(${userFilter}, ${filterByFormula})`
-      : userFilter;
+    const search = options.search || '';
+    const sortBy = options.sortBy || 'Nom';
+    const sortOrder = options.sortOrder || 'asc';
+    const statusFilter = options.statusFilter || '';
+    const profileFilter = options.profileFilter || '';
+
+    // Construction du filtre principal
+    let filters = [`FIND("${userId}", ARRAYJOIN({user_id}, ",")) > 0`];
+
+    // Ajout du filtre de recherche
+    if (search) {
+      filters.push(`OR(
+      FIND(LOWER("${search}"), LOWER({Nom})) > 0,
+      FIND(LOWER("${search}"), LOWER({Email})) > 0,
+      FIND(LOWER("${search}"), LOWER({Entreprise actuelle})) > 0,
+      FIND(LOWER("${search}"), LOWER({Poste actuel})) > 0
+    )`);
+    }
+
+    // Filtre par statut
+    if (statusFilter) {
+      filters.push(`{Statut} = "${statusFilter}"`);
+    }
+
+    // Filtre par profil
+    if (profileFilter) {
+      filters.push(`{Profil} = "${profileFilter}"`);
+    }
+
+    // Combiner tous les filtres
+    const finalFilter = filters.length > 1
+      ? `AND(${filters.join(', ')})`
+      : filters[0];
 
     console.log('Final filter formula:', finalFilter);
 
+    // Configuration du tri
+    const sortConfig = [{
+      field: sortBy === 'nom' ? 'Nom' :
+        sortBy === 'entrepriseActuelle' ? 'Entreprise actuelle' :
+          sortBy === 'posteActuel' ? 'Poste actuel' :
+            sortBy === 'dateMessage' ? 'Date message' :
+              sortBy === 'dateCreation' ? 'Date création' :
+                'Nom',
+      direction: sortOrder === 'asc' ? 'asc' : 'desc'
+    }];
+
     const selectOptions = {
       filterByFormula: finalFilter,
-      sort: sort.length ? sort : [{ field: 'Nom', direction: 'asc' }],
+      sort: sortConfig,
     };
 
     try {
@@ -155,11 +188,9 @@ const contactService = {
       const totalPages = Math.ceil(totalRecords / limit);
       const startIndex = (page - 1) * limit;
       const endIndex = startIndex + limit;
-      
+
       const paginatedRecords = allRecords.slice(startIndex, endIndex);
       const contacts = paginatedRecords.map(r => Contact.fromAirtableRecord(r));
-
-      console.log('Total contacts found:', totalRecords);
 
       return {
         data: contacts,
@@ -174,11 +205,9 @@ const contactService = {
       };
     } catch (error) {
       console.error('Airtable filter error:', error.message);
-      console.error('Filter used:', finalFilter);
       throw error;
     }
   },
-
   /**
    * Récupérer tous les contacts d'une campagne
    * @param {string} campagneId - ID de la campagne
@@ -190,9 +219,9 @@ const contactService = {
       throw new Error('ID de campagne requis');
     }
 
-    const idCamp=await campagneService.getCampagneById(campagneId)
-    
-    
+    const idCamp = await campagneService.getCampagneById(campagneId)
+
+
 
     const page = parseInt(options.page) || 1;
     const limit = parseInt(options.limit) || 100;
@@ -231,8 +260,8 @@ const contactService = {
       filters.push(`{Profil} = "${profileFilter}"`);
     }
 
-    const filterByFormula = filters.length === 1 
-      ? filters[0] 
+    const filterByFormula = filters.length === 1
+      ? filters[0]
       : `AND(${filters.join(', ')})`;
 
     const selectOptions = {
@@ -428,13 +457,13 @@ const contactService = {
    */
   async getContactsStats(userId = null) {
     let filterByFormula = '';
-    
+
     if (userId) {
       filterByFormula = `FIND("${userId}", ARRAYJOIN({user_id}, ",")) > 0`;
     }
 
     const allRecords = await base(AIRTABLE_TABLE_NAME)
-      .select({ 
+      .select({
         filterByFormula,
         fields: ['Statut', 'Profil']
       })
@@ -543,15 +572,15 @@ const contactService = {
     }
 
     if (filters.length > 0) {
-      options.filterByFormula = filters.length === 1 
-        ? filters[0] 
+      options.filterByFormula = filters.length === 1
+        ? filters[0]
         : `AND(${filters.join(', ')})`;
     }
 
     if (criteria.sortBy) {
-      options.sort = [{ 
-        field: criteria.sortBy, 
-        direction: criteria.sortOrder || 'asc' 
+      options.sort = [{
+        field: criteria.sortBy,
+        direction: criteria.sortOrder || 'asc'
       }];
     }
 

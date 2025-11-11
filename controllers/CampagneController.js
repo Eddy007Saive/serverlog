@@ -68,6 +68,7 @@ exports.getCampagnesByUser = async (req, res) => {
     const options = {
       page: req.query.page || 1,
       limit: req.query.limit || 20,
+      search: req.query.search || '',
       ...(req.query.sortBy && {
         sort: [{
           field: req.query.sortBy,
