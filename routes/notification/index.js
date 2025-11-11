@@ -28,7 +28,7 @@ router.get(
   '/unread/count',
   authenticate,
   authorize('notifications', 'read'),
-  notificationController.getUnreadCount
+  notificationController.getUserUnreadCount
 );
 
 // Compteur de notifications non lues pour l'utilisateur

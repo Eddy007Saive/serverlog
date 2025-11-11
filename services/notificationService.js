@@ -73,7 +73,6 @@ const notificationService = {
     const limit = parseInt(options.limit) || 100;
     const search = options.search || '';
     const statusFilter = options.statusFilter || '';
-    const workflowFilter = options.workflowFilter || '';
     const readFilter = options.readFilter || '';
     const sortBy = options.sortBy || 'created_at';
     const sortOrder = options.sortOrder || 'desc';
@@ -85,7 +84,6 @@ const notificationService = {
     if (search) {
       filters.push(`OR(
         FIND(LOWER("${search}"), LOWER({message})) > 0,
-        FIND(LOWER("${search}"), LOWER({workfow})) > 0
       )`);
     }
 
@@ -94,10 +92,6 @@ const notificationService = {
       filters.push(`{status} = "${statusFilter}"`);
     }
 
-    // Filtre par workflow
-    if (workflowFilter) {
-      filters.push(`{workfow} = "${workflowFilter}"`);
-    }
 
     // Filtre par statut de lecture
     if (readFilter === 'read') {
@@ -114,7 +108,6 @@ const notificationService = {
     // Configuration du tri
     const sortConfig = [{
       field: sortBy === 'created_at' ? 'created_at' :
-        sortBy === 'workfow' ? 'workfow' :
           sortBy === 'status' ? 'status' :
             'created_at',
       direction: sortOrder === 'asc' ? 'asc' : 'desc'
@@ -173,7 +166,6 @@ const notificationService = {
     const limit = parseInt(options.limit) || 100;
     const search = options.search || '';
     const statusFilter = options.statusFilter || '';
-    const workflowFilter = options.workflowFilter || '';
     const readFilter = options.readFilter || '';
     const sortBy = options.sortBy || 'created_at';
     const sortOrder = options.sortOrder || 'desc';
@@ -183,10 +175,9 @@ const notificationService = {
 
     // Ajout du filtre de recherche
     if (search) {
-      filters.push(`OR(
-        FIND(LOWER("${search}"), LOWER({message})) > 0,
-        FIND(LOWER("${search}"), LOWER({workfow})) > 0
-      )`);
+      filters.push(`
+        FIND(LOWER("${search}"), LOWER({message})) > 0
+      `);
     }
 
     // Filtre par statut
@@ -194,10 +185,6 @@ const notificationService = {
       filters.push(`{status} = "${statusFilter}"`);
     }
 
-    // Filtre par workflow
-    if (workflowFilter) {
-      filters.push(`{workfow} = "${workflowFilter}"`);
-    }
 
     // Filtre par statut de lecture
     if (readFilter === 'read') {
@@ -216,7 +203,6 @@ const notificationService = {
     // Configuration du tri
     const sortConfig = [{
       field: sortBy === 'created_at' ? 'created_at' :
-        sortBy === 'workfow' ? 'workfow' :
           sortBy === 'status' ? 'status' :
             'created_at',
       direction: sortOrder === 'asc' ? 'asc' : 'desc'
@@ -573,7 +559,7 @@ const notificationService = {
     }
 
     const selectOptions = {
-      fields: ['status', 'Read', 'workfow', 'created_at']
+      fields: ['status', 'Read', 'created_at']
     };
 
     if (filterByFormula) {
@@ -594,7 +580,6 @@ const notificationService = {
         error: 0,
         info: 0
       },
-      byWorkflow: {},
       today: 0
     };
 
@@ -603,7 +588,6 @@ const notificationService = {
     allRecords.forEach(record => {
       const isRead = record.fields['Read'] || false;
       const status = record.fields['status'] || 'info';
-      const workflow = record.fields['workfow'] || 'unknown';
       const createdAt = record.fields['created_at'];
 
       // Comptage par statut de lecture
@@ -618,8 +602,6 @@ const notificationService = {
         stats.byStatus[status]++;
       }
 
-      // Comptage par workflow
-      stats.byWorkflow[workflow] = (stats.byWorkflow[workflow] || 0) + 1;
 
       // Comptage des notifications d'aujourd'hui
       if (createdAt) {
@@ -644,7 +626,6 @@ const notificationService = {
       limit: criteria.limit,
       search: criteria.search,
       statusFilter: criteria.statusFilter,
-      workflowFilter: criteria.workflowFilter,
       readFilter: criteria.readFilter,
       sortBy: criteria.sortBy,
       sortOrder: criteria.sortOrder
