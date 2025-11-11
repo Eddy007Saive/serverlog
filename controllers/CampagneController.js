@@ -7,6 +7,7 @@ const userService = require('../services/userService');
  */
 exports.createCampagne = async (req, res) => {
   try {
+    console.log("body",req.body);
     const campagne = await campagneService.createCampagne(req.body);
     res.status(201).json({ success: true, data: campagne });
   } catch (err) {
@@ -117,7 +118,7 @@ exports.getCampagneById = async (req, res) => {
 exports.updateCampagne = async (req, res) => {
   try {
     const campagne = await campagneService.updateCampagne(req.params.id, req.body);
-    res.status(200).json({ success: true, data: campagne });
+    res.status(200).json({ success: true, message:"Campagne mise à jour avec succès"  });
   } catch (err) {
     handleError(res, err, 'Erreur lors de la mise à jour de la campagne');
   }

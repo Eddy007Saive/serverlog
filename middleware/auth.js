@@ -80,14 +80,13 @@ const authenticate = async (req, res, next) => {
 const authorize = (resource, action) => {
   return async (req, res, next) => {
     const user = req.user;
-    console.log("user",user);
+    // console.log("user",user);
     
     if (!user) return res.status(401).json({ message: 'Non authentifié' });
 
     // Récupérer les permissions réelles depuis la base
     const rolePermissions = roles[user.role] || {};
     const resourcePermissions = rolePermissions[resource] || [];
-    console.log("ressourcepermission",rolePermissions);
     
 
     if (user.role !== 'admin' && !resourcePermissions.includes(action)) {

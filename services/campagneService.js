@@ -17,7 +17,6 @@ const campagneService = {
     if (validationErrors) {
       throw new Error(`Validation échouée: ${validationErrors.join(', ')}`);
     }
-
     const fields = campagne.toAirtableFields();
     console.log('Fields to create:', JSON.stringify(fields, null, 2));
 
@@ -81,12 +80,12 @@ const campagneService = {
    * @returns {Promise<Object>} - { data, pagination }
    */
   async getAllCampagnesByUser(userId, options = {}) {
-    
+
     // Extraire l'ID si un objet user est passé
     if (typeof userId === 'object' && userId !== null) {
       userId = userId.id || userId._id || userId.userId;
     }
-    
+
     if (!userId) {
       throw new Error('ID utilisateur requis');
     }
@@ -96,12 +95,12 @@ const campagneService = {
     const limit = parseInt(options.limit) || 100;
     const filterByFormula = options.filterByFormula || '';
     const sort = options.sort || [];
-    
+
     // Pour un champ Lookup, utiliser ARRAYJOIN
     let userFilter = `FIND("${userId}", ARRAYJOIN({user_id}, ",")) > 0`;
-    
+
     // Combiner avec un filtre supplémentaire si fourni
-    const finalFilter = filterByFormula 
+    const finalFilter = filterByFormula
       ? `AND(${userFilter}, ${filterByFormula})`
       : userFilter;
 
@@ -118,19 +117,19 @@ const campagneService = {
         .select(selectOptions)
         .all();
 
-        
-        // Calculer la pagination
-        const totalRecords = allRecords.length;
-        const totalPages = Math.ceil(totalRecords / limit);
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit;
-        
-        // Extraire la page demandée
-        const paginatedRecords = allRecords.slice(startIndex, endIndex);
-        
-        const campagnes = paginatedRecords.map(r => Campagne.fromAirtableRecord(r));
 
-        console.log('Total records found:', campagnes);
+      // Calculer la pagination
+      const totalRecords = allRecords.length;
+      const totalPages = Math.ceil(totalRecords / limit);
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+
+      // Extraire la page demandée
+      const paginatedRecords = allRecords.slice(startIndex, endIndex);
+
+      const campagnes = paginatedRecords.map(r => Campagne.fromAirtableRecord(r));
+
+      console.log('Total records found:', campagnes);
 
       return {
         data: campagnes,
@@ -177,23 +176,48 @@ const campagneService = {
    * @returns {Promise<Campagne>}
    */
   async updateCampagne(id, updateData) {
+
     if (!id) {
       throw new Error('ID de campagne requis');
     }
-
     const existing = await this.getCampagneById(id);
     if (!existing) throw new Error("Campagne introuvable");
 
-    Object.assign(existing, updateData);
+    console.log("avnat", updateData);
+    // Formater updateData
+    const formattedUpdate = {
+      nom: updateData['Nom de la campagne'],
+      poste: updateData['Poste recherché'],
+      zone: updateData['Zone géographique'],
+      seniorite: updateData['Seniorite'],
+      tailleEntreprise: updateData['Taille_entreprise'],
+      langues: updateData['Langues parlées'],
+      secteurs: updateData['Secteurs souhaités'],
+      statut: updateData['Statut'],
+      Template_message: updateData['Template_message'],
+      enrichissement: updateData["Statut d'enrichissement"],
+      jours_enrichissement: updateData['Jours_enrichissement'],
+      profileParJours: updateData['Profils/jour'],
+      messageParJours: updateData['Messages/jour'],
+      InstructionRelance4Jours: updateData['InstructionRelance4Jours'],
+      InstructionRelance7Jours: updateData['InstructionRelance7Jours'],
+      InstructionRelance14Jours: updateData['InstructionRelance14Jours']
+    };
+
+    const updatedCampagne = new Campagne({
+      ...existing,  // Toutes les données existantes
+      ...formattedUpdate // Les modifications
+    });
+
 
     const validationErrors = existing.validate();
     if (validationErrors) {
       throw new Error(`Validation échouée: ${validationErrors.join(', ')}`);
     }
-
     const records = await base(AIRTABLE_TABLE_NAME).update([
-      { id, fields: existing.toAirtableFields() }
+      { id, fields: updatedCampagne.toAirtableFields() }
     ]);
+
 
     return Campagne.fromAirtableRecord(records[0]);
   },
@@ -274,9 +298,9 @@ const campagneService = {
     }
 
     if (criteria.sortBy) {
-      options.sort = [{ 
-        field: criteria.sortBy, 
-        direction: criteria.sortOrder || 'asc' 
+      options.sort = [{
+        field: criteria.sortBy,
+        direction: criteria.sortOrder || 'asc'
       }];
     }
 

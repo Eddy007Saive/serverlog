@@ -4,6 +4,8 @@ const router = express.Router();
 // Import des routes
 const authRoutes = require('./auth');
 const campagneRoute = require('./campagne');
+const contactRoute = require('./contact');
+
 
 const webhookMessages = require('./webhooks/messages');
 const webhookContacts = require('./webhooks/contacts');
@@ -18,6 +20,8 @@ const apiWebhooks = require('./api/webhooks');
 // Routes d'authentification
 router.use('/api/auth', authRoutes);
 router.use('/api/campagne', campagneRoute);
+router.use('/api/contact', contactRoute);
+
 
 // Routes webhook
 router.use('/webhook', webhookMessages);
