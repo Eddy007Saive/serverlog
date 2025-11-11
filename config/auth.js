@@ -27,6 +27,7 @@ module.exports = {
   
   // Endpoints publics (ne nécessitent pas d'authentification)
   PUBLIC_ENDPOINTS: [
+    'api/auth/google',
     '/api/auth/login',
     '/api/auth/register',
     '/api/auth/refresh',
@@ -60,5 +61,6 @@ module.exports = {
     '/api/campagnes/:id/lancer': ['write'],           // POST - Lancer campagne
     '/api/campagnes/stats': ['read'],                 // GET - Statistiques
     '/api/campagnes/search': ['read']
+
   }
 };

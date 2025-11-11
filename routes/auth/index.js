@@ -2,9 +2,9 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 
-const { 
-  comparePassword, 
-  generateTokens, 
+const {
+  comparePassword,
+  generateTokens,
   findUserByUsername,
   findUserByEmail,
   findUserById,
@@ -34,9 +34,9 @@ router.post('/login', async (req, res) => {
 
     // Trouver l'utilisateur
     const user = username ? await findUserByUsername(username) : await findUserByEmail(email);
-    console.log("dsdsd",user);
-    
-    
+    console.log("dsdsd", user);
+
+
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -47,7 +47,7 @@ router.post('/login', async (req, res) => {
 
     // Vérifier le mot de passe
     const isPasswordValid = await comparePassword(password, user.password);
-    
+
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -65,7 +65,7 @@ router.post('/login', async (req, res) => {
       data: {
         user: {
           id: user.id,
-          ID:user.userId,
+          ID: user.userId,
           username: user.username,
           email: user.email,
           role: user.role,
@@ -102,10 +102,10 @@ router.post('/refresh', async (req, res) => {
 
     // Vérifier le refresh token
     const decoded = jwt.verify(refreshToken, JWT_SECRET);
-    
+
     // Trouver l'utilisateur
     const user = findUserById(decoded.id);
-    
+
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -274,7 +274,7 @@ router.post('/register', async (req, res) => {
 
   } catch (error) {
     console.error('Erreur lors de l\'inscription:', error);
-    
+
     // Gérer les erreurs spécifiques
     if (error.message.includes('existe déjà')) {
       return res.status(409).json({
@@ -283,7 +283,7 @@ router.post('/register', async (req, res) => {
         message: error.message
       });
     }
-    
+
     if (error.message.includes('Validation échouée')) {
       return res.status(400).json({
         success: false,
@@ -362,4 +362,63 @@ router.get('/health', (req, res) => {
   });
 });
 
-module.exports = router;
+
+
+router.get('/google', (req, res, next) => {
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false 
+  })(req, res, next);
+});
+
+
+router.get('/google/callback', (req, res, next) => {
+  passport.authenticate('google', {
+    session: false,
+    failureRedirect: `${process.env.FRONTEND_URL}/login?error=google_auth_failed`
+  }, async (err, user, info) => {
+    try {
+      // Gestion des erreurs
+      if (err) {
+        console.error('Erreur Passport:', err);
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_error`);
+      }
+
+      if (!user) {
+        console.error('Aucun utilisateur retourné:', info);
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=no_user`);
+      }
+
+      // Générer les tokens JWT (comme pour login classique)
+      const { accessToken, refreshToken } = generateTokens(user);
+
+      // Option 1: Redirection avec tokens en query params
+      const redirectUrl = `${process.env.FRONTEND_URL}/auth/callback?token=${accessToken}&refresh=${refreshToken}`;
+      res.redirect(redirectUrl);
+
+      // Option 2: Retourner JSON (si votre frontend ouvre une popup)
+      // res.json({
+      //   success: true,
+      //   message: 'Authentification Google réussie',
+      //   data: {
+      //     user: {
+      //       id: user.id,
+      //       username: user.username,
+      //       email: user.email,
+      //       role: user.role,
+      //       permissions: user.permissions
+      //     },
+      //     accessToken,
+      //     refreshToken,
+      //     expiresIn: require('../../config/auth').JWT_EXPIRES_IN
+      //   }
+      // });
+
+    } catch (error) {
+      console.error('Erreur callback Google:', error);
+      res.redirect(`${process.env.FRONTEND_URL}/login?error=token_generation_failed`);
+    }
+  })(req, res, next);
+  });
+
+  module.exports = router;

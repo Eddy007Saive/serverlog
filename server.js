@@ -3,6 +3,7 @@ const cors = require('./middleware/cors');
 const { authenticate, autoAuthorize } = require('./middleware/auth');
 const routes = require('./routes');
 const { testAirtableConnection } = require('./config/airtable');
+const passport = require('./config/passport');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,6 +14,7 @@ app.use(express.json());
 // Middleware CORS
 app.use(cors);
 
+app.use(passport.initialize());
 // Middleware d'authentification global
 app.use(authenticate);
 
