@@ -16,12 +16,14 @@ const apiContacts = require('./api/contacts');
 const apiExecution = require('./api/execution');
 const apiHealth = require('./api/health');
 const apiWebhooks = require('./api/webhooks');
+const notificationRoute = require('./notification');
+
 
 // Routes d'authentification
 router.use('/api/auth', authRoutes);
 router.use('/api/campagne', campagneRoute);
 router.use('/api/contact', contactRoute);
-
+router.use('/api/notification', notificationRoute);
 
 // Routes webhook
 router.use('/webhook', webhookMessages);
