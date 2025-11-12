@@ -27,7 +27,9 @@ module.exports = {
   
   // Endpoints publics (ne nécessitent pas d'authentification)
   PUBLIC_ENDPOINTS: [
-    'api/auth/google',
+    '/google',
+    '/google/callback',
+    '/api/auth/google',
     '/api/auth/login',
     '/api/auth/register',
     '/api/auth/refresh',
@@ -56,10 +58,10 @@ module.exports = {
     
     // CAMPAGNES - Endpoints protégés
     '/api/campagnes': ['read', 'write'], 
-    '/api/campagnes/user': ['read', 'write'],              // GET (read) / POST (write)
-    '/api/campagnes/:id': ['read', 'write', 'delete'], // GET (read) / PATCH (write) / DELETE (delete)
-    '/api/campagnes/:id/lancer': ['write'],           // POST - Lancer campagne
-    '/api/campagnes/stats': ['read'],                 // GET - Statistiques
+    '/api/campagnes/user': ['read', 'write'],
+    '/api/campagnes/:id': ['read', 'write', 'delete'], 
+    '/api/campagnes/:id/lancer': ['write'],           
+    '/api/campagnes/stats': ['read'],                
     '/api/campagnes/search': ['read']
 
   }
