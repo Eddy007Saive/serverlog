@@ -78,6 +78,8 @@ router.get('/google/callback', (req, res, next) => {
                 `username=${encodeURIComponent(user.username)}&` +
                 `role=${user.role}`;
 
+                
+
             res.redirect(redirectUrl);
 
         } catch (error) {

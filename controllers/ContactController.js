@@ -1,3 +1,4 @@
+const { User } = require('../middleware/auth');
 const contactService = require('../services/contactService');
 const userService = require('../services/userService');
 
@@ -345,7 +346,10 @@ exports.searchContacts = async (req, res) => {
 exports.getContactsStats = async (req, res) => {
   try {
     const userId = req.query.userId || req.user?.id || null;
-    const stats = await contactService.getContactsStats(userId);
+    
+    const user=await User.findById(userId)
+
+    const stats = await contactService.getContactsStats(user.userId);
     
     res.status(200).json({ 
       success: true, 

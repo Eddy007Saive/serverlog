@@ -21,6 +21,13 @@ router.get(
 );
 
 router.get(
+  '/stats',
+  authenticate,
+  authorize('contacts', 'read'),
+  ContactController.getContactsStats
+);
+
+router.get(
   '/user',
   authenticate,
   authorize('contacts', 'read'),

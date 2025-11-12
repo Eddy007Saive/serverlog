@@ -451,10 +451,10 @@ const contactService = {
   },
 
   /**
-   * Obtenir des statistiques sur les contacts
-   * @param {string} userId - ID utilisateur (optionnel)
-   * @returns {Promise<Object>}
-   */
+  * Obtenir des statistiques sur les contacts
+  * @param {string} userId - ID utilisateur (optionnel)
+  * @returns {Promise<Object>}
+  */
   async getContactsStats(userId = null) {
     let filterByFormula = '';
 
@@ -469,36 +469,48 @@ const contactService = {
       })
       .all();
 
+    console.log("records userId:", userId);
+
+    // Initialiser les stats avec les propriétés exactes attendues par le frontend
     const stats = {
       total: allRecords.length,
-      byStatus: {},
-      byProfile: {},
+
+      // Compteurs par statut (format attendu par le frontend)
       nonContacte: 0,
       messageEnvoye: 0,
       reponseRecue: 0,
       interesse: 0,
       nonInteresse: 0,
       aRelancer: 0,
+
+      // Compteurs par profil (format attendu par le frontend)
       profilsGardes: 0,
       profilsRejetes: 0,
-      profilsEnAttente: 0
+      profilsEnAttente: 0,
+
+      // Objets détaillés (pour usage futur)
+      byStatus: {},
+      byProfile: {}
     };
 
     allRecords.forEach(record => {
       const statut = record.fields['Statut'] || 'À contacter';
       const profil = record.fields['Profil'] || 'En attente';
 
-      // Statistiques par statut
+      // Statistiques détaillées par statut
       stats.byStatus[statut] = (stats.byStatus[statut] || 0) + 1;
 
+      // Mapping des statuts selon les valeurs du frontend
       switch (statut) {
         case 'À contacter':
+        case 'Non contacté':
           stats.nonContacte++;
           break;
         case 'Message envoyé':
           stats.messageEnvoye++;
           break;
         case 'Répondu':
+        case 'Réponse reçue':
           stats.reponseRecue++;
           break;
         case 'Intéressé':
@@ -512,14 +524,17 @@ const contactService = {
           break;
       }
 
-      // Statistiques par profil
+      // Statistiques détaillées par profil
       stats.byProfile[profil] = (stats.byProfile[profil] || 0) + 1;
 
+      // Mapping des profils
       switch (profil) {
         case 'GARDE':
+        case 'Gardé':
           stats.profilsGardes++;
           break;
         case 'REJETE':
+        case 'Rejeté':
           stats.profilsRejetes++;
           break;
         case 'En attente':
@@ -528,6 +543,8 @@ const contactService = {
           break;
       }
     });
+
+    console.log("stats finales:", stats);
 
     return stats;
   },
