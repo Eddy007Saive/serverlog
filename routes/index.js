@@ -23,6 +23,8 @@ const apiExecution = require('./api/execution');
 const apiHealth = require('./api/health');
 const apiWebhooks = require('./api/webhooks');
 const notificationRoute = require('./notification');
+const configurationRoute = require('./configuration');
+
 
 
 // Routes d'authentification
@@ -30,6 +32,8 @@ router.use('/api/auth', authRoutes);
 router.use('/api/campagne', campagneRoute);
 router.use('/api/contact', contactRoute);
 router.use('/api/notification', notificationRoute);
+router.use('/api/configuration', configurationRoute);
+
 
 // Routes webhook
 router.use('/webhook', webhookMessages);

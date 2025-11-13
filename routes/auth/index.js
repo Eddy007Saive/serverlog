@@ -186,6 +186,8 @@ router.get('/me', (req, res) => {
 // Route d'enregistrement
 router.post('/register', async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
+  console.log("body",req.body);
+  
 
   try {
     // Validation des données d'entrée

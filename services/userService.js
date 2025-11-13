@@ -9,6 +9,7 @@ const userService = {
     if (validationErrors) {
       throw new Error(`Validation échouée: ${validationErrors.join(', ')}`);
     }
+    
 
     // Vérifie si un utilisateur existe déjà
     const existingUser = await this.findByEmail(user.email)
