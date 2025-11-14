@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const passport = require('../../config/passport');
 const { authenticate } = require('../../middleware/auth');
-const authController = require('../../controllers/authController');
+const authController = require('../../controllers/AuthController');
 
 // ==========================================
 // ROUTES PUBLIQUES (sans authentification)
