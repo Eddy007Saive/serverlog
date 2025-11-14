@@ -35,6 +35,8 @@ const authenticate = async (req, res, next) => {
   try {
     // Vérifier et décoder le token
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log("decode",decoded);
+    
     
     // Vérifier que l'utilisateur existe toujours et est actif
     const user = await User.findById(decoded.id);
@@ -80,7 +82,7 @@ const authenticate = async (req, res, next) => {
 const authorize = (resource, action) => {
   return async (req, res, next) => {
     const user = req.user;
-    // console.log("user",user);
+    console.log("user",user);
     
     if (!user) return res.status(401).json({ message: 'Non authentifié' });
 

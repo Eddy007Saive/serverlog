@@ -1,3 +1,4 @@
+// config/auth.js
 module.exports = {
   // Configuration JWT
   JWT_SECRET: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
@@ -25,19 +26,21 @@ module.exports = {
     }
   ],
   
-  // Endpoints publics (ne nécessitent pas d'authentification)
+  // ✅ Endpoints publics (ne nécessitent pas d'authentification)
+  // IMPORTANT: Ne jamais mettre '/' seul car cela rend tout public !
   PUBLIC_ENDPOINTS: [
-    '/',
-    '/google',
-    '/google/callback',
     '/api/auth/google',
+    '/api/auth/google/callback',
     '/api/auth/login',
     '/api/auth/register',
     '/api/auth/refresh',
+    '/api/auth/health',
     '/api/health',
-    '/favicon.ico',
-    '/api/webhooks'
-    // Les campagnes ne sont PAS publiques - elles nécessitent une authentification
+    '/api/webhooks',
+    '/health',
+    '/favicon.ico'
+    // ❌ NE PAS mettre '/' seul
+    // ❌ NE PAS mettre '/api/auth/me' (doit être protégé)
   ],
   
   // Permissions requises par endpoint
@@ -64,6 +67,5 @@ module.exports = {
     '/api/campagnes/:id/lancer': ['write'],           
     '/api/campagnes/stats': ['read'],                
     '/api/campagnes/search': ['read']
-
   }
 };
