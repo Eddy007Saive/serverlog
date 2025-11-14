@@ -27,6 +27,7 @@ module.exports = {
   
   // Endpoints publics (ne nécessitent pas d'authentification)
   PUBLIC_ENDPOINTS: [
+    '/',
     '/google',
     '/google/callback',
     '/api/auth/google',

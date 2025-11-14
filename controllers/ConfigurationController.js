@@ -372,10 +372,6 @@ exports.getSystemStatus = async (req, res) => {
         userAgentValid: config.userAgent && config.userAgent.length > 50
       };
     }
-
-        console.log("status",status);
-
-
     res.status(200).json(status);
   } catch (err) {
     handleError(res, err, 'Erreur lors de la récupération du statut système');
