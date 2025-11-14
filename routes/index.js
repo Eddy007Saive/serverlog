@@ -93,4 +93,47 @@ router.get('/google/callback', (req, res, next) => {
     })(req, res, next);
 });
 
+
+// ==========================================
+// ROUTE RACINE - Bienvenue
+// ==========================================
+router.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: '🚀 Bienvenue sur l\'API ServerLog',
+    version: '1.0.0',
+    status: 'operational',
+    timestamp: new Date().toISOString(),
+    documentation: {
+      auth: 'https://docs.votre-api.com/auth',
+      webhooks: 'https://docs.votre-api.com/webhooks'
+    },
+    endpoints: {
+      auth: {
+        login: 'POST /api/auth/login',
+        register: 'POST /api/auth/register',
+        me: 'GET /api/auth/me (protected)',
+        refresh: 'POST /api/auth/refresh'
+      },
+      health: 'GET /api/health',
+      webhooks: 'GET /api/webhooks'
+    }
+  });
+});
+
+// ==========================================
+// HEALTH CHECK
+// ==========================================
+router.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage()
+  });
+});
+
+
+
 module.exports = router;
