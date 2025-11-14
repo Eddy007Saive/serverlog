@@ -176,6 +176,8 @@ const campagneService = {
    * @returns {Promise<Campagne>}
    */
   async updateCampagne(id, updateData) {
+    console.log("ato e");
+    
 
     if (!id) {
       throw new Error('ID de campagne requis');
@@ -193,9 +195,9 @@ const campagneService = {
       tailleEntreprise: updateData['Taille_entreprise'],
       langues: updateData['Langues parlées'],
       secteurs: updateData['Secteurs souhaités'],
-      statut: updateData['Statut'],
+      statut: updateData['statut'],
       Template_message: updateData['Template_message'],
-      enrichissement: updateData["Statut d'enrichissement"],
+      enrichissement: updateData["enrichissement"],
       jours_enrichissement: updateData['Jours_enrichissement'],
       profileParJours: updateData['Profils/jour'],
       messageParJours: updateData['Messages/jour'],
@@ -209,7 +211,8 @@ const campagneService = {
       ...formattedUpdate // Les modifications
     });
 
-
+    console.log("apres",updatedCampagne);
+    
     const validationErrors = existing.validate();
     if (validationErrors) {
       throw new Error(`Validation échouée: ${validationErrors.join(', ')}`);

@@ -77,6 +77,7 @@ exports.createConfiguration = async (req, res) => {
  */
 exports.upsertConfiguration = async (req, res) => {
   try {
+    
     const user = await userService.findById(req.user.id);
 
     if (!user) {
@@ -86,7 +87,7 @@ exports.upsertConfiguration = async (req, res) => {
       });
     }
 
-    const configuration = await configurationService.upsertConfiguration(req.body, user.userId);
+    const configuration = await configurationService.upsertConfiguration(req.body, user.id);
 
     res.status(200).json({
       success: true,

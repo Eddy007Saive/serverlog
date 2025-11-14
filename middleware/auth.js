@@ -13,11 +13,9 @@ const authenticate = async (req, res, next) => {
   );
   
   if (isPublicEndpoint) {
-    console.log(`✅ Endpoint public autorisé: ${req.path}`);
     return next();
   }
 
-  console.log(`🔒 Vérification d'authentification requise pour: ${req.path}`);
 
   // Récupérer le token depuis les headers
   const authHeader = req.headers.authorization;
@@ -35,6 +33,7 @@ const authenticate = async (req, res, next) => {
   try {
     // Vérifier et décoder le token
     const decoded = jwt.verify(token, JWT_SECRET);
+    
     // Vérifier que l'utilisateur existe toujours et est actif
     const user = await User.findById(decoded.id);
     if (!user) {
@@ -63,7 +62,6 @@ const authenticate = async (req, res, next) => {
       permissions: user.permissions
     };
     
-    console.log(`✅ Token valide pour utilisateur: ${user.username} (${user.role})`);
     next();
   } catch (error) {
     console.log(`❌ Token invalide: ${error.message}`);
@@ -102,7 +100,6 @@ const autoAuthorize = (req, res, next) => {
   const requiredPermissions = ENDPOINT_PERMISSIONS[path] || [];
   
   if (requiredPermissions.length > 0) {
-    console.log(`🎯 Auto-autorisation pour ${path}: [${requiredPermissions.join(', ')}]`);
     return authorize(requiredPermissions)(req, res, next);
   }
   
@@ -111,10 +108,6 @@ const autoAuthorize = (req, res, next) => {
 
 // Middleware de debugging pour les routes
 const debugRoutes = (req, res, next) => {
-  console.log(`\n🔍 [${new Date().toISOString()}] ${req.method} ${req.path}`);
-  console.log(`📨 Headers: Authorization = ${req.headers.authorization ? 'Present' : 'Missing'}`);
-  console.log(`🌐 Public endpoint: ${PUBLIC_ENDPOINTS.some(endpoint => req.path === endpoint || req.path.startsWith(endpoint)) ? 'Yes' : 'No'}`);
-  console.log(`🔐 Required permissions: [${ENDPOINT_PERMISSIONS[req.path]?.join(', ') || 'None'}]`);
   next();
 };
 
