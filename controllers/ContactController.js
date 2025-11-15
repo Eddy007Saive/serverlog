@@ -1,4 +1,5 @@
 const { User } = require('../middleware/auth');
+const campagneService = require('../services/campagneService');
 const contactService = require('../services/contactService');
 const userService = require('../services/userService');
 
@@ -31,7 +32,7 @@ exports.createMultipleContacts = async (req, res) => {
     }
 
     const createdContacts = await contactService.createMultipleContacts(contacts);
-    
+
     res.status(201).json({
       success: true,
       data: createdContacts,
@@ -64,7 +65,7 @@ exports.getContacts = async (req, res) => {
 
     const result = await contactService.getAllContacts(options);
     console.log(result);
-    
+
 
     res.status(200).json({
       success: true,
@@ -113,7 +114,7 @@ exports.getContactsByUser = async (req, res) => {
     };
 
     const result = await contactService.getAllContactsByUser(user.userId, options);
-    
+
     res.status(200).json({
       success: true,
       result
@@ -133,7 +134,7 @@ exports.getContactsByUser = async (req, res) => {
  */
 exports.getContactsByCampagne = async (req, res) => {
   try {
-    const campagneId  = req.params.id;
+    const campagneId = req.params.id;
 
 
     const options = {
@@ -151,7 +152,7 @@ exports.getContactsByCampagne = async (req, res) => {
 
     const result = await contactService.getContactsByCampagne(campagneId, options);
     console.log(result);
-    
+
 
     res.status(200).json({
       success: true,
@@ -212,7 +213,7 @@ exports.updateContactStatus = async (req, res) => {
     }
 
     const contact = await contactService.updateContactStatus(req.params.id, statut);
-    
+
     res.status(200).json({
       success: true,
       data: contact,
@@ -247,7 +248,7 @@ exports.updateContactProfile = async (req, res) => {
     }
 
     const contact = await contactService.updateContactProfile(req.params.id, profil);
-    
+
     res.status(200).json({
       success: true,
       data: contact,
@@ -282,7 +283,7 @@ exports.autoSortProfiles = async (req, res) => {
   try {
     const { campagneId } = req.params;
     const result = await contactService.autoSortProfiles(campagneId);
-    
+
     res.status(200).json(result);
   } catch (err) {
     handleError(res, err, 'Erreur lors du tri automatique des profils');
@@ -297,7 +298,7 @@ exports.manualSortProfiles = async (req, res) => {
   try {
     const { campagneId } = req.params;
     const result = await contactService.manualSortProfiles(campagneId);
-    
+
     res.status(200).json(result);
   } catch (err) {
     handleError(res, err, 'Erreur lors du retri manuel des profils');
@@ -328,13 +329,122 @@ exports.searchContacts = async (req, res) => {
     };
 
     const result = await contactService.searchContacts(criteria);
-    
+
     res.status(200).json({
       success: true,
       ...result
     });
   } catch (err) {
     handleError(res, err, 'Erreur lors de la recherche de contacts');
+  }
+};
+
+/**
+ * Exporter les contacts sans réponse en CSV
+ */
+exports.exportContactsSansReponse = async (req, res) => {
+  try {
+    const { id: campaignId } = req.body;
+
+    if (!campaignId) {
+      return res.status(400).json({
+        success: false,
+        error: 'ID de campagne requis'
+      });
+    }
+
+    // Récupérer la campagne pour le nom
+    const campagne = await campagneService.getCampagneById(campaignId);
+    console.log("ato eeee", campagne);
+
+
+    if (!campagne) {
+      return res.status(404).json({
+        success: false,
+        error: 'Campagne non trouvée'
+      });
+    }
+
+    // Récupérer tous les contacts sans réponse
+    const contactsSansReponse = await contactService.getContactsSansReponseByCampagne(campaignId);
+
+    if (contactsSansReponse.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Aucun contact sans réponse trouvé',
+        count: 0
+      });
+    }
+
+    // Créer les en-têtes CSV
+    // Créer les en-têtes CSV (corrigés)
+    const headers = [
+      'Nom Complet',
+      'Email',
+      'Téléphone',
+      'Poste',
+      'Entreprise',
+      'LinkedIn',
+      'Statut',
+      'Profil',
+    ];
+
+    // Fonction helper pour échapper les valeurs CSV
+    const escapeCSV = (value) => {
+      if (value === null || value === undefined) return '';
+      const stringValue = String(value);
+      // Échapper les guillemets et entourer de guillemets si nécessaire
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
+    // Créer les lignes CSV (corrigées)
+    const csvRows = [
+      headers.join(','),
+      ...contactsSansReponse.map(contact => {
+        return [
+          escapeCSV(contact.nom),                    // Nom complet
+          escapeCSV(contact.email),                  // Email
+          escapeCSV(contact.telephone),              // Téléphone
+          escapeCSV(contact.posteActuel),            // Poste
+          escapeCSV(contact.entrepriseActuelle),     // Entreprise
+          escapeCSV(contact.url),                    // LinkedIn URL
+          escapeCSV(contact.statut),                 // Statut
+          escapeCSV(contact.profil),                 // Profil
+          escapeCSV(contact.dateMessage ? new Date(contact.dateMessage).toLocaleDateString('fr-FR') : ''),
+          escapeCSV(contact.messagePersonnalise)     // Message
+        ].join(',');
+      })
+    ];
+
+
+
+    // Créer le contenu CSV avec BOM UTF-8 pour Excel
+    const csvContent = '\ufeff' + csvRows.join('\n');
+
+    // Nom de fichier sécurisé
+    const safeCampaignName = campagne.nom.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `contacts_sans_reponse_${safeCampaignName}_${timestamp}.csv`;
+
+    // Définir les headers HTTP pour le téléchargement
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('X-Total-Count', contactsSansReponse.length);
+
+    // Envoyer le CSV
+    res.send(csvContent);
+
+    console.log(`✅ Export CSV: ${contactsSansReponse.length} contacts sans réponse exportés pour la campagne "${campagne.nom}"`);
+
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'export CSV:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Erreur lors de l\'export CSV',
+      details: error.message
+    });
   }
 };
 
@@ -346,14 +456,14 @@ exports.searchContacts = async (req, res) => {
 exports.getContactsStats = async (req, res) => {
   try {
     const userId = req.query.userId || req.user?.id || null;
-    
-    const user=await User.findById(userId)
+
+    const user = await User.findById(userId)
 
     const stats = await contactService.getContactsStats(user.userId);
-    
-    res.status(200).json({ 
-      success: true, 
-      data: stats 
+
+    res.status(200).json({
+      success: true,
+      data: stats
     });
   } catch (err) {
     handleError(res, err, 'Erreur lors de la récupération des statistiques');
@@ -367,13 +477,13 @@ exports.getContactsStats = async (req, res) => {
 exports.getContactsStatsByCampagne = async (req, res) => {
   try {
     const { campagneId } = req.params;
-    
+
     // Récupérer tous les contacts de la campagne
-    const result = await contactService.getContactsByCampagne(campagneId, { 
+    const result = await contactService.getContactsByCampagne(campagneId, {
       limit: 1000,
-      userId: req.user?.id || null 
+      userId: req.user?.id || null
     });
-    
+
     const contacts = result.data;
 
     // Calculer les statistiques

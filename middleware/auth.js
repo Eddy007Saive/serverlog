@@ -34,8 +34,10 @@ const authenticate = async (req, res, next) => {
     // Vérifier et décoder le token
     const decoded = jwt.verify(token, JWT_SECRET);
     
+    
     // Vérifier que l'utilisateur existe toujours et est actif
     const user = await User.findById(decoded.id);
+    
     if (!user) {
       console.log(`❌ Utilisateur non trouvé pour ID: ${decoded.id}`);
       return res.status(401).json({
@@ -61,10 +63,11 @@ const authenticate = async (req, res, next) => {
       role: user.role,
       permissions: user.permissions
     };
+
+    
     
     next();
   } catch (error) {
-    console.log(`❌ Token invalide: ${error.message}`);
     return res.status(401).json({
       success: false,
       error: 'Token invalide',

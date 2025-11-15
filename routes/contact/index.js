@@ -12,6 +12,17 @@ router.post(
   ContactController.createContact
 );
 
+/**
+ * @route   POST /api/contacts/export/sans-reponse
+ * @desc    Exporter les contacts sans réponse en CSV
+ * @access  Private
+ */
+router.post('/export/sans-reponse',
+  authenticate,
+  authorize('contacts', 'write'),
+   ContactController.exportContactsSansReponse);
+
+
 // Récupérer toutes les contacts de l'utilisateur (ou toutes si admin)
 router.get(
   '/',

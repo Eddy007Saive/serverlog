@@ -6,6 +6,43 @@ const campagneService = require('./campagneService');
 const AIRTABLE_TABLE_NAME = 'Contacts';
 
 const contactService = {
+
+  /**
+   * Récupérer tous les contacts sans réponse d'une campagne (sans pagination)
+   * @param {string} campagneId - ID de la campagne
+   * @returns {Promise<Array>} - Tous les contacts sans réponse
+   */
+  async getContactsSansReponseByCampagne(campagneId) {
+    if (!campagneId) {
+      throw new Error('ID de campagne requis');
+    }
+
+    try {
+      const idCamp = await campagneService.getCampagneById(campagneId);
+
+      // Récupérer uniquement les contacts sans réponse avec un filtre Airtable
+      const allRecords = await base(AIRTABLE_TABLE_NAME)
+        .select({
+          filterByFormula: `AND(
+          FIND("${idCamp.ID}", ARRAYJOIN({ID (from Campagne)})),
+          {Statut} = "Message envoyé",
+          DATETIME_DIFF(TODAY(), {Date du message}, 'days') >= 5
+        )`,
+          sort: [{ field: 'Nom', direction: 'asc' }]
+        })
+        .all();
+
+      const contacts = allRecords.map(r => Contact.fromAirtableRecord(r));
+      console.log("valine",contacts);
+      
+
+      return contacts;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des contacts sans réponse:', error);
+      throw new Error(`Erreur Airtable: ${error.message}`);
+    }
+  },
+
   /**
    * Créer un nouveau contact
    * @param {Object} data - Données du contact
@@ -469,7 +506,6 @@ const contactService = {
       })
       .all();
 
-    console.log("records userId:", userId);
 
     // Initialiser les stats avec les propriétés exactes attendues par le frontend
     const stats = {
@@ -544,7 +580,6 @@ const contactService = {
       }
     });
 
-    console.log("stats finales:", stats);
 
     return stats;
   },
