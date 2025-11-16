@@ -176,7 +176,6 @@ const campagneService = {
    * @returns {Promise<Campagne>}
    */
   async updateCampagne(id, updateData) {
-    console.log("ato e");
     
 
     if (!id) {
@@ -201,9 +200,7 @@ const campagneService = {
       jours_enrichissement: updateData['Jours_enrichissement'],
       profileParJours: updateData['Profils/jour'],
       messageParJours: updateData['Messages/jour'],
-      InstructionRelance4Jours: updateData['InstructionRelance4Jours'],
-      InstructionRelance7Jours: updateData['InstructionRelance7Jours'],
-      InstructionRelance14Jours: updateData['InstructionRelance14Jours']
+      Relances: updateData['Relances']
     };
 
     const updatedCampagne = new Campagne({

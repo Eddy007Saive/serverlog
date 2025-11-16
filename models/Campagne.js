@@ -22,9 +22,7 @@ constructor(data = {}) {
   this.jours_enrichissement = data['Jours_enrichissement'] || data.jours_enrichissement || '';
   this.profileParJours = data['Profils/jour'] || data.profileParJours || 0;  // ✅ Inversé !
   this.messageParJours = data['Messages/jour'] || data.messageParJours || 0;  // ✅ Inversé !
-  this.InstructionRelance4Jours = data['InstructionRelance4Jours'] || data.InstructionRelance4Jours || '';
-  this.InstructionRelance7Jours = data['InstructionRelance7Jours'] || data.InstructionRelance7Jours || '';
-  this.InstructionRelance14Jours = data['InstructionRelance14Jours'] || data.InstructionRelance14Jours || '';
+  this.Relances = data['Relances'] || data.Relances || '';
   this.user_id = data.user_id || [];
   this.Users = data.Users;
 }
@@ -54,9 +52,7 @@ constructor(data = {}) {
       'Jours_enrichissement': this.jours_enrichissement,
       'Profils/jour': this.profileParJours,
       'Messages/jour': this.messageParJours,
-      'InstructionRelance4Jours': this.InstructionRelance4Jours,
-      'InstructionRelance7Jours': this.InstructionRelance7Jours,
-      'InstructionRelance14Jours': this.InstructionRelance14Jours,
+      'Relances': this.Relances,
       "Users":this.Users
     });
   }
@@ -84,9 +80,7 @@ static fromAirtableRecord(record) {
     'Jours_enrichissement': data['Jours_enrichissement'],
     'Profils/jour': data['Profils/jour'],
     'Messages/jour': data['Messages/jour'],
-    'InstructionRelance4Jours': data['InstructionRelance4Jours'],
-    'InstructionRelance7Jours': data['InstructionRelance7Jours'],
-    'InstructionRelance14Jours': data['InstructionRelance14Jours'],
+    'Relances': data['Relances'],
     'user_id': data['user_id'],
     'Users': data['Users']
   });
