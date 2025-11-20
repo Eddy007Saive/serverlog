@@ -78,6 +78,8 @@ exports.getCampagnesByUser = async (req, res) => {
     };
 
     const result = await campagneService.getAllCampagnesByUser(user.userId, options);
+    console.log("reusle",result);
+    
     
 
     res.status(200).json({

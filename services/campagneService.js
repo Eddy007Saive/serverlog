@@ -200,7 +200,10 @@ const campagneService = {
       jours_enrichissement: updateData['Jours_enrichissement'],
       profileParJours: updateData['Profils/jour'],
       messageParJours: updateData['Messages/jour'],
-      Relances: updateData['Relances']
+      Relances: updateData['Relances'],
+      coldEmail: updateData['ColdEmail'],
+      coldDelayAfterFollowUp: updateData['coldDelayAfterFollowUp'],
+      coldCampaignIdEmelia: updateData['coldCampaignIdEmelia']
     };
 
     const updatedCampagne = new Campagne({

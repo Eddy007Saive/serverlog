@@ -25,6 +25,9 @@ constructor(data = {}) {
   this.Relances = data['Relances'] || data.Relances || '';
   this.user_id = data.user_id || [];
   this.Users = data.Users;
+  this.coldDelayAfterFollowUp=data.coldDelayAfterFollowUp;
+  this.coldCampaignIdEmelia=data.coldCampaignIdEmelia
+  this.coldEmail=data.ColdEmail || false;
 }
 
   validate() {
@@ -53,6 +56,9 @@ constructor(data = {}) {
       'Profils/jour': this.profileParJours,
       'Messages/jour': this.messageParJours,
       'Relances': this.Relances,
+      "ColdEmail":this.coldEmail,
+      "coldDelayAfterFollowUp":this.coldDelayAfterFollowUp,
+      "coldCampaignIdEmelia":this.coldCampaignIdEmelia,
       "Users":this.Users
     });
   }
@@ -82,7 +88,10 @@ static fromAirtableRecord(record) {
     'Messages/jour': data['Messages/jour'],
     'Relances': data['Relances'],
     'user_id': data['user_id'],
-    'Users': data['Users']
+    'Users': data['Users'],
+    'coldDelayAfterFollowUp': data['coldDelayAfterFollowUp'],
+    'coldCampaignIdEmelia': data['coldCampaignIdEmelia'],
+    'coldEmail': data['ColdEmail']
   });
 }
 }

@@ -33,6 +33,8 @@ const authenticate = async (req, res, next) => {
   try {
     // Vérifier et décoder le token
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log(decoded);
+    
     
     
     // Vérifier que l'utilisateur existe toujours et est actif
