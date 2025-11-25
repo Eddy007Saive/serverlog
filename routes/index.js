@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const passport = require('../config/passport');
 const {
-    generateTokens
+    generateTokens,
+    authenticate,
+    authorize
 } = require('../middleware/auth');
 require('dotenv').config(); // Charge les variables d'environnement
 
@@ -36,9 +38,9 @@ router.use('/api/configuration', configurationRoute);
 
 
 // Routes webhook
-router.use('/webhook', webhookMessages);
-router.use('/webhook', webhookContacts);
-router.use('/webhook', webhookProfiles);
+router.use('/webhook/messages' ,webhookMessages);
+router.use('/webhook/contacts', webhookContacts);
+router.use('/webhook/profils' , webhookProfiles);
 
 // Routes API
 router.use('/api', apiMessages);

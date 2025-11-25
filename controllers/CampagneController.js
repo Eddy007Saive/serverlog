@@ -7,7 +7,6 @@ const userService = require('../services/userService');
  */
 exports.createCampagne = async (req, res) => {
   try {
-    console.log("body",req.body);
     const campagne = await campagneService.createCampagne(req.body);
     res.status(201).json({ success: true, data: campagne });
   } catch (err) {

@@ -5,11 +5,14 @@ const router = express.Router();
 const { createSSEResponse } = require('../../middleware/sse');
 const pollWorkflow = require('../../utils/pollWorkflow');
 const { WEBHOOK_ENDPOINTS } = require('../../config/constants');
+const { authenticate, authorize } = require('../../middleware/auth');
 
 // 3. Enrichir les contacts
-router.post('/enrichir/contacte', async (req, res) => {
+router.post('/enrichir/contacte', authenticate,
+  authorize('campagnes', 'read'),async (req, res) => {
   const { sendEvent } = createSSEResponse(res);
   const { id } = req.body;
+  const user=req.user.id;
 
   try {
     sendEvent('start', { message: 'Enrichissement des contacts en cours...' });

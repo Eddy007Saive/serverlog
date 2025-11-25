@@ -39,16 +39,14 @@ module.exports = {
     '/api/webhooks',
     '/health',
     '/favicon.ico'
-    // ❌ NE PAS mettre '/' seul
-    // ❌ NE PAS mettre '/api/auth/me' (doit être protégé)
   ],
   
   // Permissions requises par endpoint
   ENDPOINT_PERMISSIONS: {
     // Webhooks existants
-    '/webhook/generer/messages': ['write'],
+    '/webhook/generer/messages': ['read', 'write'],
     '/webhook/regenerer/messages': ['write'],
-    '/webhook/enrichir/contacte': ['write'],
+    '/webhook/enrichir/contacte': ['read', 'write'],
     '/webhook/supprimer/contact/reject': ['delete'],
     '/webhook/trier/profils': ['write'],
     '/webhook/retrier/profils': ['write'],
